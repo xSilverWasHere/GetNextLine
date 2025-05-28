@@ -75,7 +75,7 @@ char	*ft_strndup(const char *s, size_t len)
 	s_len = ft_strlen(s);
 	i = 0;
 	if (len >= s_len)
-		return (NULL);
+		return (ft_strdup(""));
 	str = malloc((s_len - len + 1) * sizeof(char));
 	if (str == NULL)
 		return (NULL);
@@ -89,12 +89,14 @@ char	*ft_strndup(const char *s, size_t len)
 	return (str);
 }
 
-char	*ft_strdup(const char *s)
+char	*ft_strdup(char *s)
 {
 	char	*str;
 	int		i;
 	int		l;
 
+	if (s == NULL)
+		return (NULL);
 	i = 0;
 	l = ft_strlen(s);
 	str = malloc ((l + 1) * sizeof(char));
