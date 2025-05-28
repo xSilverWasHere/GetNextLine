@@ -15,81 +15,93 @@
 char	*read_until_newline(int fd, char *storage)
 {
 	char	*buffer;
+	char	*old_storage;
+	char	*tmp;
 	int		bytes;
-	
+
 	buffer = malloc(BUFFER_SIZE + 1);
 	if (!buffer)
-		return(NULL);
+		return (NULL);
 	bytes = 1;
-
-	while (!ft_strchr(buffer, '\n') && bytes > 0)
+	if (!storage)
+		storage = ft_strdup("");
+	while (!ft_strchr(storage, '\n') && bytes > 0)
 	{
 		bytes = read(fd, buffer, BUFFER_SIZE);
 		if (bytes == -1)
-			return(free(buffer), NULL);
+			return (free(buffer), NULL);
 		buffer[bytes] = '\0';
-		storage = ft_strjoin(storage, buffer);
+		old_storage = storage;
+		tmp = ft_strjoin(storage, buffer);
+		free(old_storage);
+		storage = tmp;
 		if (bytes == 0)
-			break;
+			break ;
 	}
-	return (free(buffer), (storage));
+	return (free(buffer), storage);
 }
 
-char	*extract_line(char	*storage)
+char	*extract_line(char *storage)
 {
-	int	i;
+	int		i;
+	int		j;
 	char	*line;
 
 	i = 0;
-	
-	if (!storage && !*storage)
-		return(NULL);
-	while (storage && storage[i] != '\n')
-		i++;
-	if (storage[i] == '\n')
-		i++;
-	line = malloc((i + 1) * sizeof(char));
-	if (!line)
-		return(NULL);
-	i = 0;
+	if (!storage || !*storage)
+		return (NULL);
 	while (storage[i] && storage[i] != '\n')
-	{
-		line[i] = storage[i];
 		i++;
-	}
 	if (storage[i] == '\n')
-	{
-		line[i] = storage[i];
 		i++;
+	line = malloc(i + 1);
+	if (!line)
+		return (NULL);
+	j = 0;
+	while (j < i)
+	{
+		line[j] = storage[j];
+		j++;
 	}
 	line[i] = '\0';
-	return(line);
+	return (line);
 }
 
 char	*update_storage(char *storage, char *line)
 {
 	size_t	len;
-	char	*updated_storage;
+	char	*updated;
 
 	len = ft_strlen(line);
-	if (!line)
-		return(NULL);
-	updated_storage = ft_strndup(storage, len);
-	return(free(storage), updated_storage);
+	if (!storage || !line)
+		return (NULL);
+	if (len >= ft_strlen(storage))
+		return (NULL);
+	updated = ft_strndup(storage, len);
+	return (updated);
 }
 
 char	*get_next_line(int fd)
 {
 	static char	*storage;
 	char		*line;
+	char		*tmp;
 
-	if (!line)
-		return(NULL);
-	storage = 0;
+	if (fd < 0 || BUFFER_SIZE <= 0)
+		return (NULL);
 	storage = read_until_newline(fd, storage);
+	if (!storage)
+		return (NULL);
 	line = extract_line(storage);
-	storage = update_storage(storage, line);
-	return(line);
+	tmp = update_storage(storage, line);
+	free(storage);
+	storage = tmp;
+	if	(!line || (storage && *storage == '\0'))
+	{
+		free(storage);
+		storage = NULL;
+	}
+	return (line);
 }
 
 #include <stdio.h>
