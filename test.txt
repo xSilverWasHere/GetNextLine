@@ -1,2 +1,0 @@
-this text has 23 bytes.
-this one has 22 bytes.

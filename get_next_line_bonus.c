@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jpedro-g <jpedro-g@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 char	*read_until_newline(int fd, char *storage)
 {
@@ -29,7 +29,7 @@ char	*read_until_newline(int fd, char *storage)
 	{
 		bytes = read(fd, buffer, BUFFER_SIZE);
 		if (bytes == -1)
-			return (free(buffer), NULL);
+			return (free(buffer), free(storage), NULL);
 		buffer[bytes] = '\0';
 		old_storage = storage;
 		tmp = ft_strjoin(storage, buffer);
@@ -83,40 +83,48 @@ char	*update_storage(char *storage, char *line)
 
 char	*get_next_line(int fd)
 {
-	static char	*storage;
+	static char	*storage[FD_MAX];
 	char		*line;
 	char		*tmp;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (fd < 0 || fd >= FD_MAX || BUFFER_SIZE <= 0)
 		return (NULL);
-	storage = read_until_newline(fd, storage);
-	if (!storage)
-		return (free(storage), NULL);
-	line = extract_line(storage);
-	tmp = update_storage(storage, line);
-	free(storage);
-	storage = tmp;
-	if (!line || (storage && *storage == '\0'))
+	storage[fd] = read_until_newline(fd, storage[fd]);
+	if (!storage[fd])
+		return (NULL);
+	line = extract_line(storage[fd]);
+	tmp = update_storage(storage[fd], line);
+	free(storage[fd]);
+	storage[fd] = tmp;
+	if (!line)
 	{
-		free(storage);
-		storage = NULL;
+		if (storage[fd])
+			free(storage[fd]);
+		return (NULL);
+	}
+	if (storage[fd] && *storage[fd] == '\0')
+	{
+		free(storage[fd]);
+		storage[fd] = NULL;
 	}
 	return (line);
 }
-
-#include <stdio.h>
+/*
 #include <fcntl.h>
+#include <stdio.h>
 
 int	main()
 {
 	int		fd;
+	int		fd2;
 	char	*line;
 
-	fd = 100;
-	while ((line = get_next_line(fd)) != NULL)
-	{
-		printf("%s", line);
-		free(line);
-	}
+	fd2 = open("test2.txt", O_RDONLY);
+	fd = open("test.txt", O_RDONLY);
+	fd2 = 0;
+	printf("%s", get_next_line(fd));
+	printf("%s", get_next_line(fd2));
+	printf("%s", get_next_line(fd));
 	close(fd);
-}
+	close(fd2);
+}*/
